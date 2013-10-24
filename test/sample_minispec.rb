@@ -1,4 +1,3 @@
-
 require 'minitest/spec'
 
 class Meme
@@ -30,7 +29,3 @@ describe Meme do
     end
   end
 end
-
-
-puts MiniTest::Unit::TestCase.test_suites
-#uts MiniTest::Unit.plugins
