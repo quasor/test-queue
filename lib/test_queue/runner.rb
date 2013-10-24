@@ -183,7 +183,7 @@ module TestQueue
         pid = fork do
           @server.close if @server
 
-          iterator = Iterator.new(relay?? @relay : @socket)
+          iterator = Iterator.new(relay?? @relay : @socket, @queue)
           after_fork_internal(num, iterator)
           exit! run_worker(iterator) || 0
         end
@@ -264,7 +264,8 @@ module TestQueue
           cmd = sock.gets.strip
           case cmd
           when 'POP'
-            data = Marshal.dump(@queue.shift)
+            item = @queue.shift
+            data = Marshal.dump(item.to_s)
             sock.write(data)
           when /^SLAVE (\d+)/
             remote_workers += $1.to_i

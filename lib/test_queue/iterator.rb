@@ -2,7 +2,7 @@ module TestQueue
   class Iterator
     attr_reader :stats, :sock
 
-    def initialize(sock)
+    def initialize(sock, queue)
       @done = false
       @stats = {}
       @procline = $0
@@ -11,6 +11,7 @@ module TestQueue
         @tcp_address = $1
         @tcp_port = $2.to_i
       end
+      @queue = queue
     end
 
     def each
@@ -23,7 +24,7 @@ module TestQueue
 
         if data = client.read(65536)
           client.close
-          item = Marshal.load(data)
+          item = @queue.find {|name| Marshal.load(data) == name.to_s }
           break if item.nil?
 
           $0 = "#{@procline} - #{item.respond_to?(:description) ? item.description : item}"
