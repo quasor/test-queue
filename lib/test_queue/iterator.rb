@@ -29,8 +29,8 @@ module TestQueue
 
           $0 = "#{@procline} - #{item.respond_to?(:description) ? item.description : item}"
           start = Time.now
-          yield item
-          @stats[item] = Time.now - start
+          yield item          
+          @stats[item.to_s] = Time.now - start
         else
           break
         end
