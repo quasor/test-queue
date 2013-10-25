@@ -55,7 +55,8 @@ module TestQueue
         STDERR.puts "*** Detected TEST_QUEUE_RELAY == TEST_QUEUE_SOCKET. Disabling relay mode."
         @relay = nil
       elsif @relay
-        @queue = []
+        # We now use the queue to lookup tests
+        # @queue = [] 
       end
     end
 
@@ -183,7 +184,7 @@ module TestQueue
         pid = fork do
           @server.close if @server
 
-          iterator = Iterator.new(relay?? @relay : @socket, @queue)
+          iterator = Iterator.new((relay? ? @relay : @socket), @queue.dup)
           after_fork_internal(num, iterator)
           exit! run_worker(iterator) || 0
         end
