@@ -62,7 +62,7 @@ module TestQueue
 
     def stats
       @stats ||=
-        if File.exists?(file = '.test_queue_stats')
+        if File.exists?(file = stats_file)
           Marshal.load(IO.binread(file)) || {}
         else
           {}
@@ -90,13 +90,14 @@ module TestQueue
         summary, failures = summarize_worker(worker)
         @failures << failures if failures
 
-        puts "    [%2d] %60s      in %.4fs      (pid %d exit %d%s)" % [
+        puts "    [%2d] %60s      %4d suites in %.4fs      (pid %d exit %d%s)" % [
           worker.num,
           summary,
+          worker.stats.size,
           worker.end_time - worker.start_time,
           worker.pid,
           worker.status.exitstatus,
-          worker.host && " on #{worker.host}"
+          worker.host && " on #{worker.host.split('.').first}"
         ]
       end
 
@@ -110,7 +111,7 @@ module TestQueue
       puts
 
       if @stats
-        File.open('.test_queue_stats', 'wb') do |f|
+        File.open(stats_file, 'wb') do |f|
           f.write Marshal.dump(stats)
         end
       end
@@ -120,6 +121,11 @@ module TestQueue
     end
 
     def summarize
+    end
+
+    def stats_file
+      ENV['TEST_QUEUE_STATS'] ||
+      '.test_queue_stats'
     end
 
     def execute_sequential
@@ -271,7 +277,9 @@ module TestQueue
             data = Marshal.dump(item.to_s)
             sock.write(data)
           when /^SLAVE (\d+)/
-            remote_workers += $1.to_i
+            num = $1.to_i
+            remote_workers += num
+            STDERR.puts "*** slave connected with additional #{num} workers"
           when /^WORKER (\d+)/
             data = sock.read($1.to_i)
             worker = Marshal.load(data)
